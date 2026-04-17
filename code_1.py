@@ -55,7 +55,7 @@ usuarios_fixos = {
 # --- SISTEMA DE LOGIN E CADASTRO ---
 def tela_acesso():
     st.sidebar.title("Acesso ao Sistema")
-    opcao = st.sidebar.radio("Selecione:", ["Entrar", "Criar Conta (Apenas Paciente)"])
+    opcao = st.sidebar.radio("Selecione:", ["Entrar", "Criar Conta"])
     
     try:
         dados_usuarios = aba_usuarios.get_all_records()
@@ -87,7 +87,7 @@ def tela_acesso():
             else:
                 st.sidebar.error("Usuário ou Senha incorretos.")
                 
-    elif opcao == "Criar Conta (Apenas Paciente)":
+    elif opcao == "Criar Conta":
         novo_user = st.sidebar.text_input("Novo Usuário")
         nova_senha = st.sidebar.text_input("Nova Senha", type="password")
         
