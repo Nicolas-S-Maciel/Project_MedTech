@@ -9,6 +9,11 @@ Um sistema web completo, responsivo e seguro para gestão de clínicas, prontuá
 
 ---
 
+## 🔗 Link de Acesso
+🚀 **Acesse o sistema online:** [https://projectmedtech.streamlit.app](https://projectmedtech.streamlit.app)
+
+---
+
 ## 🎓 Contexto Acadêmico
 
 Este projeto foi idealizado e desenvolvido como atividade prática para o curso superior de **Análise e Desenvolvimento de Sistemas (ADS)** do **SENAI**. A aplicação foi criada especificamente para a disciplina de **Engenharia de Software**, com o objetivo central de projetar e desenvolver uma solução de software funcional e aplicável à realidade de uma clínica médica, utilizando ferramentas acessíveis como o Google Planilhas.
@@ -21,7 +26,6 @@ Este projeto foi idealizado e desenvolvido como atividade prática para o curso 
 3. [A Arquitetura e o Papel do Gspread](#-a-arquitetura-e-o-papel-do-gspread)
 4. [Tecnologias Utilizadas](#-tecnologias-utilizadas)
 5. [Como Executar Localmente](#-como-executar-localmente)
-6. [Deploy e Segurança](#-deploy-e-segurança)
 
 ---
 
