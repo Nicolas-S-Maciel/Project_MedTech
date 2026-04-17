@@ -48,8 +48,8 @@ except Exception as e:
 
 # --- USUÁRIOS FIXOS DA CLÍNICA ---
 usuarios_fixos = {
-    "admin": {"senha": "123", "nivel": "total"},
-    "medico": {"senha": "456", "nivel": "escrita"}
+    "admin": {"senha": st.secrets["senhas_clinica"]["admin"], "nivel": "total"},
+    "medico": {"senha": st.secrets["senhas_clinica"]["medico"], "nivel": "escrita"}
 }
 
 # --- SISTEMA DE LOGIN E CADASTRO ---
