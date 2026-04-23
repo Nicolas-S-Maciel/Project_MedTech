@@ -11,7 +11,6 @@ def connect_sheet():
              "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
     
     credenciais = dict(st.secrets["gcp_service_account"])
-    # Limpeza da chave para evitar erros de conexão
     if "\\n" in credenciais["private_key"]:
         credenciais["private_key"] = credenciais["private_key"].replace("\\n", "\n")
         
@@ -86,7 +85,6 @@ def tela_acesso():
 
 if not st.session_state['logado']:
     tela_acesso()
-    st.info("Bem-vindo. Faça login para ver seu prontuário.")
 else:
     st.title("🩺 Painel de Evolução Médica")
     st.sidebar.write(f"Usuário: **{st.session_state['user']}**")
@@ -94,38 +92,35 @@ else:
         st.session_state['logado'] = False
         st.rerun()
 
-    # --- LÓGICA DE CONSULTA INTELIGENTE ---
+    # --- LÓGICA DE CONSULTA ---
     st.header("🔍 Histórico do Paciente")
-    
     all_data = base.get_all_records()
     df = pd.DataFrame(all_data)
 
-    # SE FOR PACIENTE: Filtra pelo nome dele automaticamente
     if st.session_state['nivel'] == "leitura":
+        # Paciente vê o seu automaticamente
         paciente_df = df[df['Nome_Completo'].astype(str).str.contains(st.session_state['user'], case=False, na=False)]
         st.subheader(f"👤 Seu Prontuário: {st.session_state['user']}")
-    
-    # SE FOR MÉDICO/ADMIN: Abre campo de busca por ID
     else:
-        id_busca = st.text_input("Digite o ID do Paciente (Ex: P001)", placeholder="P001")
-        paciente_df = df[df['ID_Paciente'].astype(str) == id_busca] if id_busca else pd.DataFrame()
+        # Médico/Admin busca por NOME COMPLETO
+        nome_busca = st.text_input("Digite o Nome Completo do Paciente", placeholder="Ex: João Silva")
+        paciente_df = df[df['Nome_Completo'].astype(str).str.contains(nome_busca, case=False, na=False)] if nome_busca else pd.DataFrame()
 
-    # EXIBIÇÃO DOS RESULTADOS
     if not paciente_df.empty:
         for index, registro in paciente_df.sort_values(by='Data/Hora', ascending=False).iterrows():
-            with st.expander(f"📅 {registro.get('Data/Hora')} - {registro.get('Categoria')}"):
+            with st.expander(f"📅 {registro.get('Data/Hora')} - {registro.get('Categoria')} (ID: {registro.get('ID_Paciente')})"):
                 st.write(f"**Relato:** {registro.get('Relato')}")
+                st.write(f"**Sinais e Exames:** {registro.get('Sinais/Exames')}")
                 st.write(f"**Diagnóstico:** {registro.get('Diagnóstico')}")
                 st.write(f"**Conduta:** {registro.get('Conduta')}")
                 
                 if st.session_state['nivel'] == "total":
-                    if st.button("🗑️ Excluir", key=f"del_{index}"):
-                        base.delete_rows(base.find(registro['Data/Hora']).row)
+                    if st.button("🗑️ Excluir Registro", key=f"del_{index}"):
+                        celula = base.find(registro['Data/Hora'])
+                        base.delete_rows(celula.row)
                         st.rerun()
-    elif st.session_state['nivel'] != "leitura" and not paciente_df.empty:
-        st.warning("Nenhum registro encontrado.")
-    elif st.session_state['nivel'] == "leitura" and paciente_df.empty:
-        st.info("Ainda não existem evoluções registradas para o seu nome.")
+    elif 'nome_busca' in locals() and nome_busca:
+        st.warning("Nenhum paciente encontrado com esse nome.")
 
     # --- LANÇAMENTO (Só Admin/Médico) ---
     if st.session_state['nivel'] in ["total", "escrita"]:
@@ -136,25 +131,29 @@ else:
         with st.form("form_evolucao"):
             if tipo == "Novo Paciente":
                 id_paciente = gerar_novo_id(base)
-                st.write(f"ID Gerado: **{id_paciente}**")
+                st.write(f"ID Gerado para o Banco: **{id_paciente}**")
                 nome_p = st.text_input("Nome Completo do Paciente *")
             else:
-                id_paciente = st.text_input("ID do Paciente *")
-                nome_p = st.text_input("Nome (Opcional)")
+                nome_p = st.text_input("Nome Completo do Paciente (Para localizar ID) *")
+                id_paciente = "" # Será preenchido na lógica abaixo
 
             cat = st.selectbox("Categoria", ["Médica", "Enfermagem", "Fisioterapia", "Outros"])
             relato = st.text_area("Relato Clínico *")
+            sinais = st.text_area("Sinais e Exames")
             diag = st.text_input("Diagnóstico/Hipótese")
             conduta = st.text_area("Conduta")
             
             if st.form_submit_button("Salvar Registro"):
-                if id_paciente and relato:
-                    if tipo == "Evolução (Existente)" and not nome_p:
-                        # Busca o nome na base pelo ID
-                        busca_nome = df[df['ID_Paciente'].astype(str) == id_paciente]
-                        nome_p = busca_nome.iloc[-1]['Nome_Completo'] if not busca_nome.empty else "Não Identificado"
+                if nome_p and relato:
+                    if tipo == "Evolução (Existente)":
+                        # Busca o ID na base pelo nome fornecido
+                        busca_id = df[df['Nome_Completo'].astype(str).str.contains(nome_p, case=False, na=False)]
+                        id_paciente = busca_id.iloc[-1]['ID_Paciente'] if not busca_id.empty else "P000"
                     
                     data_agora = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-                    base.append_row([id_paciente, nome_p, data_agora, cat, relato, "", diag, conduta])
+                    # Ordem das colunas: ID, Nome, Data, Categoria, Relato, Sinais, Diagnóstico, Conduta
+                    base.append_row([id_paciente, nome_p, data_agora, cat, relato, sinais, diag, conduta])
                     st.success("Salvo com sucesso!")
                     st.rerun()
+                else:
+                    st.error("Nome e Relato são obrigatórios!")
