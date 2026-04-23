@@ -15,7 +15,7 @@ def connect_sheet():
     
     creds = ServiceAccountCredentials.from_json_keyfile_dict(credenciais, scope)
     client = gspread.authorize(creds)
-    link_da_planilha = "https://docs.google.com/spreadsheets/d/16AddnMv5ZrMW29jEYJKUTQe1ondtwfPUkcaLMsVV3K8"
+    link_da_planilha = "https://docs.google.com/spreadsheets/d/16AddnMv5ZrMW29jEYJKUTQe1ondtwfPUkcaLMsVV3K8/edit"
     return client.open_by_url(link_da_planilha)
 
 # --- FUNÇÃO GERADORA DE ID ---
