@@ -52,7 +52,7 @@ usuarios_fixos = {
 
 # --- LOGIN E CADASTRO ---
 def tela_acesso():
-    st.sidebar.title("🩺 MedTech Access")
+    st.sidebar.title("命 MedTech Access")
     opcao = st.sidebar.radio("Selecione:", ["Entrar", "Criar Conta"])
     
     try:
@@ -86,7 +86,7 @@ def tela_acesso():
 if not st.session_state['logado']:
     tela_acesso()
 else:
-    st.title("🩺 Painel de Evolução Médica")
+    st.title("命 Painel de Evolução Médica")
     st.sidebar.write(f"Usuário: **{st.session_state['user']}**")
     if st.sidebar.button("Sair"):
         st.session_state['logado'] = False
@@ -112,17 +112,17 @@ else:
                 st.write(f"**Diagnóstico:** {registro.get('Diagnóstico')}")
                 st.write(f"**Conduta:** {registro.get('Conduta')}")
                 
-                # --- PERMISSÃO ADMIN: EXCLUIR REGISTRO ---
+                # --- GERENCIAR PRONTUÁRIOS (SÓ ADMIN) ---
                 if st.session_state['nivel'] == "total":
-                    if st.button("🗑️ Excluir Registro", key=f"del_reg_{index}"):
+                    if st.button("🗑️ Excluir Este Registro", key=f"del_reg_{index}"):
                         try:
-                            # Localiza pela data/hora que é única
+                            # Localiza a linha exata na planilha pela Data/Hora
                             celula = base.find(str(registro['Data/Hora']))
                             base.delete_rows(celula.row)
-                            st.success("Registro excluído!")
+                            st.success("Registro removido com sucesso!")
                             st.rerun()
                         except:
-                            st.error("Erro ao localizar registro para exclusão.")
+                            st.error("Não foi possível excluir este registro.")
 
     # --- LANÇAMENTO (Só Admin/Médico) ---
     if st.session_state['nivel'] in ["total", "escrita"]:
@@ -156,7 +156,7 @@ else:
                     st.success("Salvo com sucesso!")
                     st.rerun()
 
-    # --- GESTÃO DE USUÁRIOS (EXCLUSIVO ADMIN) ---
+    # --- GERENCIAR USUÁRIOS (SÓ ADMIN) ---
     if st.session_state['nivel'] == "total":
         st.divider()
         st.header("👥 Gerenciar Usuários")
@@ -169,6 +169,7 @@ else:
                     if c2.button("Excluir Conta", key=f"user_{i}"):
                         cel_u = aba_usuarios.find(str(u_row['Usuario']))
                         aba_usuarios.delete_rows(cel_u.row)
+                        st.success(f"Usuário {u_row['Usuario']} removido.")
                         st.rerun()
         except:
             st.info("Nenhum usuário para gerenciar.")
